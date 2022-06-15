@@ -1,4 +1,5 @@
 from tkinter import *
+import pandas as pd
 from PIL import ImageTk, Image
 from word import get_words
 
@@ -8,15 +9,17 @@ class App(Tk):
     screen_height = 800
     canvas_color = '#acd8c0'
     white = '#fff'
+    black = '#000'
     back_text_background = '#8fc2ae'
     language_font = ('Arial', 32, 'italic')
     word_font = ('Arial', 48, 'bold')
-    words = get_words()
+    save_words_file = 'data/words_to_learn.csv'
 
     def __init__(self):
         super().__init__()
         self.language = StringVar()
         self.word = StringVar()
+        self.words = get_words()
         self.progress = 0
 
         self.title('Flashy')
@@ -41,6 +44,7 @@ class App(Tk):
         wrong_button.configure(
             image=self.wrong_button,
             background=self.canvas_color,
+            command=self.skip_word
         )
         wrong_button.place(x=250, y=600)
 
@@ -50,7 +54,7 @@ class App(Tk):
         right_button.configure(
             image=self.right_button,
             background=self.canvas_color,
-            command=self.flip_back
+            command=self.next_word
         )
         right_button.place(x=650, y=600)
 
@@ -74,18 +78,20 @@ class App(Tk):
         self.flash_card.img = self.card_front
         self.flash_card.configure(
             image=self.card_front,
-            background=self.canvas_color
+            background=self.canvas_color,
         )
 
         self.language.set('Italian')
         self.language_label.configure(
             background=self.white,
-            font=self.language_font
+            font=self.language_font,
+            foreground=self.black
         )
 
         self.word.set(self.words[self.progress].italian)
         self.word_label.configure(
             background=self.white,
+            foreground=self.black,
             font=self.word_font
         )
 
@@ -111,3 +117,21 @@ class App(Tk):
     def study(self):
         self.flip_front()
         self.after(3000, self.flip_back)
+
+    def next_word(self):
+        self.words.pop(self.progress)
+        self.progress += 1
+        self.study()
+        self.save_words()
+
+    def skip_word(self):
+        self.words.pop(self.progress)
+        self.progress += 1
+        self.study()
+
+    def save_words(self):
+        with open(self.save_words_file, 'w') as f:
+            df = pd.DataFrame(data=self.words)
+            df.columns = ['Italian', 'English']
+            df[['Italian', 'English']].to_csv(f)
+            f.close()

@@ -1,6 +1,6 @@
 from tkinter import *
 from PIL import ImageTk, Image
-from time import sleep
+from word import get_words
 
 
 class App(Tk):
@@ -11,11 +11,13 @@ class App(Tk):
     back_text_background = '#8fc2ae'
     language_font = ('Arial', 32, 'italic')
     word_font = ('Arial', 48, 'bold')
+    words = get_words()
 
     def __init__(self):
         super().__init__()
         self.language = StringVar()
         self.word = StringVar()
+        self.progress = 0
 
         self.title('Flashy')
         self.geometry(f'{self.screen_width}x{self.screen_height}')
@@ -66,7 +68,7 @@ class App(Tk):
         self.word_label.configure(textvariable=self.word)
         self.word_label.place(relx=0.5, rely=0.42, anchor=CENTER)
 
-        self.flip_front()
+        self.study()
 
     def flip_front(self):
         self.flash_card.img = self.card_front
@@ -81,14 +83,13 @@ class App(Tk):
             font=self.language_font
         )
 
-        self.word.set('e')
+        self.word.set(self.words[self.progress].italian)
         self.word_label.configure(
             background=self.white,
             font=self.word_font
         )
 
     def flip_back(self):
-        sleep(3)
         self.flash_card.img = self.card_back
         self.flash_card.configure(
             image=self.card_back,
@@ -101,8 +102,12 @@ class App(Tk):
             foreground=self.white
         )
 
-        self.word.set('And')
+        self.word.set(self.words[self.progress].english)
         self.word_label.configure(
             background=self.back_text_background,
             foreground=self.white,
         )
+
+    def study(self):
+        self.flip_front()
+        self.after(3000, self.flip_back)
